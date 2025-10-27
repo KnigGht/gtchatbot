@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, User, Bot, Copy, Check } from 'lucide-react';
+import companyLogo from './assets/gt-logo.png';
+import companyLogo2 from './assets/loader.png';
 
 export default function AIChatbot() {
   const [messages, setMessages] = useState([]);
@@ -203,7 +205,7 @@ Instructions:
       {/* Header */}
       <header style={styles.header}>
         <div style={styles.headerContent}>
-          <img src="http://www.growthtip.my/assets/images/resources/GT_website%20Logo-03-187x49.png" alt="Growth Tip Logo" style={styles.headerLogo} />
+          <img src={companyLogo} alt="Growth Tip Logo" style={styles.headerLogo} />
         </div>
       </header>
 
@@ -212,7 +214,7 @@ Instructions:
         {messages.length === 0 ? (
           // Welcome screen - centered
           <div style={styles.welcomeScreen}>
-            <img src="http://www.growthtip.my/assets/images/loader.png" alt="Growth Tip" style={styles.welcomeLogo} />
+            <img src={companyLogo2} alt="Growth Tip" style={styles.welcomeLogo} />
             <h2 style={styles.welcomeTitle}>How can I help you today?</h2>
             <p style={styles.welcomeSubtitle}>
               I'm Growth Tip's virtual advisor, your guide to our services.
