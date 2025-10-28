@@ -16,8 +16,14 @@ export default function AIChatbot() {
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  scrollToBottom();
+    // Always refocus after any change
+    setTimeout(() => {
+      if (inputRef.current && !isLoading) {
+        inputRef.current.focus();
+      }
+    }, 100);
+  }, [messages, isLoading]);
 
   useEffect(() => {
     // Auto-focus input on mount
@@ -193,11 +199,6 @@ Instructions:
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-        }
-      }, 0);
     }
   };
 
@@ -303,10 +304,19 @@ Instructions:
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
+              onBlur={(e) => {
+                // Prevent losing focus unless clicking outside chat
+                setTimeout(() => {
+                  if (inputRef.current && !isLoading) {
+                    inputRef.current.focus();
+                  }
+                }, 0);
+              }}
               placeholder="Type your message here...(English or 中文)"
               style={styles.textarea}
               rows="1"
               disabled={isLoading}
+              autoFocus
             />
             <button
               onClick={handleSubmit}
