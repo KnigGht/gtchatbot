@@ -167,6 +167,12 @@ Instructions:
     const userMessage = input.trim();
     setInput('');
     
+    setTimeout(() => {
+      if (inputRef.current){
+        inputRef.current.focus();
+      }
+    }, 0);
+
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
