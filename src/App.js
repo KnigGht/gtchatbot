@@ -19,6 +19,12 @@ export default function AIChatbot() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    // Auto-focus input on mount
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
   // API call to Alibaba Cloud
   const getAIResponse = async (userMessage) => {
     try {
@@ -166,15 +172,13 @@ Instructions:
 
     const userMessage = input.trim();
     setInput('');
-    
-    setTimeout(() => {
-      if (inputRef.current){
-        inputRef.current.focus();
-      }
-    }, 0);
 
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
+
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
 
     try {
       const aiResponse = await getAIResponse(userMessage);
@@ -186,6 +190,10 @@ Instructions:
       }]);
     } finally {
       setIsLoading(false);
+
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }
   };
 
