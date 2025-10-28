@@ -146,6 +146,10 @@ Instructions:
 - Keep answers concise but complete
 - Use natural language, not robotic responses`
             },
+            ...messages.map(m => ({
+              role: m.role === 'assistant' ? 'assistant' : 'user',
+              content: m.content
+            })),
             {
               role: 'user',
               content: userMessage
