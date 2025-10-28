@@ -142,7 +142,7 @@ A: The new rules allow the principal to designate a dependent as successor upon 
 Instructions:
 - Answer questions based on the FAQ above
 - Be friendly and conversational
-- If a question is not covered in the FAQ, politely say "I don't have that specific information in my current knowledge base, but I recommend contacting Growth Tip Consultancy directly for more details."
+- If a question is not covered in the FAQ, politely say "I don't have that specific information in my current knowledge base, but I recommend to please get in touch with us +6 (03) 9059-1111 or email us at info@growthtip.my"
 - Keep answers concise but complete
 - Use natural language, not robotic responses`
             },
