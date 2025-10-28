@@ -172,13 +172,9 @@ Instructions:
 
     const userMessage = input.trim();
     setInput('');
-
+    
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
-
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
 
     try {
       const aiResponse = await getAIResponse(userMessage);
@@ -190,10 +186,6 @@ Instructions:
       }]);
     } finally {
       setIsLoading(false);
-
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
     }
   };
 
@@ -201,6 +193,11 @@ Instructions:
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 0);
     }
   };
 
