@@ -530,7 +530,7 @@ const styles = {
     textAlign: 'center',
   },
   welcomeSubtitle: {
-    fontSize: '20px',
+    fontSize: '18px',
     color: '#666666',
     textAlign: 'center',
     maxWidth: '500px',
