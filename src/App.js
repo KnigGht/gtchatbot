@@ -472,7 +472,7 @@ const styles = {
     textAlign: 'center',
   },
   languageSubtitle: {
-    fontSize: '16px',
+    fontSize: '18px',
     color: '#666666',
     textAlign: 'center',
     maxWidth: '500px',
@@ -523,14 +523,14 @@ const styles = {
     marginBottom: '24px',
   },
   welcomeTitle: {
-    fontSize: '32px',
+    fontSize: '38px',
     fontWeight: '700',
     color: '#333333',
     marginBottom: '8px',
     textAlign: 'center',
   },
   welcomeSubtitle: {
-    fontSize: '16px',
+    fontSize: '20px',
     color: '#666666',
     textAlign: 'center',
     maxWidth: '500px',
