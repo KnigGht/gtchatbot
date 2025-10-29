@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot, Copy, Check } from 'lucide-react';
+import { Send, User, Bot, Copy, Check, Globe } from 'lucide-react';
 import companyLogo from './assets/gt-logo.png';
 import companyLogo2 from './assets/loader.png';
 
@@ -8,6 +8,7 @@ export default function AIChatbot() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [selectedLanguage, setSelectedLanguage] = useState(null); // null, 'en', or 'zh'
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -16,24 +17,41 @@ export default function AIChatbot() {
   };
 
   useEffect(() => {
-  scrollToBottom();
-    // Always refocus after any change
-    setTimeout(() => {
-      if (inputRef.current && !isLoading) {
-        inputRef.current.focus();
-      }
-    }, 100);
-  }, [messages, isLoading]);
+    scrollToBottom();
+    // Always refocus after any change (only if language is selected)
+    if (selectedLanguage) {
+      setTimeout(() => {
+        if (inputRef.current && !isLoading) {
+          inputRef.current.focus();
+        }
+      }, 100);
+    }
+  }, [messages, isLoading, selectedLanguage]);
 
   useEffect(() => {
-    // Auto-focus input on mount
-    if (inputRef.current) {
+    // Auto-focus input on mount only if language already selected
+    if (selectedLanguage && inputRef.current) {
       inputRef.current.focus();
     }
-  }, []);
+  }, [selectedLanguage]);
+
+  const handleLanguageSelect = (lang) => {
+    setSelectedLanguage(lang);
+    // Add welcome message in selected language
+    const welcomeMessage = lang === 'en' 
+      ? "Hello! How can I assist you today? 😊"
+      : "您好！今天我能帮您什么？😊";
+    
+    setMessages([{ role: 'assistant', content: welcomeMessage }]);
+  };
+
   // API call to Alibaba Cloud
   const getAIResponse = async (userMessage) => {
     try {
+      const languageInstruction = selectedLanguage === 'zh'
+        ? "CRITICAL: You MUST respond ONLY in Chinese (中文). Even if the user writes in English or mixed languages, you must respond in Chinese only."
+        : "CRITICAL: You MUST respond ONLY in English. Even if the user writes in Chinese or mixed languages, you must respond in English only.";
+
       const response = await fetch('https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -45,7 +63,9 @@ export default function AIChatbot() {
           messages: [
             {
               role: 'system',
-              content: `You are a helpful assistant for MM2H (Malaysia My Second Home) visa program. Answer questions based ONLY on the following FAQ information. Be conversational, friendly, and concise.
+              content: `${languageInstruction}
+
+You are a helpful assistant for MM2H (Malaysia My Second Home) visa program. Answer questions based ONLY on the following FAQ information. Be conversational, friendly, and concise.
 
 === FREQUENTLY ASKED QUESTIONS - MM2H APPLICATION ===
 
@@ -144,9 +164,10 @@ Instructions:
 - Be friendly and conversational
 - If a question is not covered in the FAQ, politely say "I don't have that specific information in my current knowledge base, but I recommend to please get in touch with us +6 (03) 9059-1111 or email us at info@growthtip.my"
 - Keep answers concise but complete
-- Use natural language, not robotic responses`
+- Use natural language, not robotic responses
+- REMEMBER: Respond ONLY in ${selectedLanguage === 'zh' ? 'Chinese (中文)' : 'English'}, regardless of the user's input language.`
             },
-            ...messages.map(m => ({
+            ...messages.filter(m => m.role !== 'system').map(m => ({
               role: m.role === 'assistant' ? 'assistant' : 'user',
               content: m.content
             })),
@@ -169,11 +190,15 @@ Instructions:
       if (data.choices && data.choices[0] && data.choices[0].message) {
         return data.choices[0].message.content;
       } else {
-        return "Sorry, I couldn't process your request. Please try again.";
+        return selectedLanguage === 'zh' 
+          ? "抱歉，我无法处理您的请求。请重试。"
+          : "Sorry, I couldn't process your request. Please try again.";
       }
     } catch (error) {
       console.error('API Error:', error);
-      return "Sorry, there was an error connecting to the AI service. Please check your API key and try again.";
+      return selectedLanguage === 'zh'
+        ? "抱歉，连接AI服务时出错。请稍后再试。"
+        : "Sorry, there was an error connecting to the AI service. Please try again later.";
     }
   };
 
@@ -192,7 +217,9 @@ Instructions:
     } catch (error) {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Sorry, there was an error processing your request.' 
+        content: selectedLanguage === 'zh' 
+          ? '抱歉，处理您的请求时出错。'
+          : 'Sorry, there was an error processing your request.'
       }]);
     } finally {
       setIsLoading(false);
@@ -222,19 +249,53 @@ Instructions:
       <header style={styles.header}>
         <div style={styles.headerContent}>
           <img src={companyLogo} alt="Growth Tip Logo" style={styles.headerLogo} />
+          {selectedLanguage && (
+            <button
+              onClick={() => {
+                setSelectedLanguage(null);
+                setMessages([]);
+              }}
+              style={styles.langSwitcher}
+              title="Change language"
+            >
+              <Globe size={16} />
+              <span>{selectedLanguage === 'en' ? 'English' : '中文'}</span>
+            </button>
+          )}
         </div>
       </header>
 
       {/* Messages Container */}
       <div style={styles.messagesContainer}>
-        {messages.length === 0 ? (
-          // Welcome screen - centered
+        {!selectedLanguage ? (
+          // Language selection screen
+          <div style={styles.languageScreen}>
+            <img src={companyLogo2} alt="Growth Tip" style={styles.welcomeLogo} />
+            <h2 style={styles.welcomeTitle}>Welcome!</h2>
+            <p style={styles.welcomeSubtitle}>I'm Growth Tip's virtual advisor, your guide to our services.</p>
+            <p style={styles.languageSubtitle}>Choose your language preference | 请选择您的语言</p>
+            <div style={styles.languageButtons}>
+              <button
+                onClick={() => handleLanguageSelect('en')}
+                style={styles.languageButton}
+              >
+                <span style={styles.languageFlag}>EN</span>
+              </button>
+              <button
+                onClick={() => handleLanguageSelect('zh')}
+                style={styles.languageButton}
+              >
+                <span style={styles.languageFlag}>CN</span>
+              </button>
+            </div>
+          </div>
+        ) : messages.length === 0 ? (
+          // This shouldn't show as we add welcome message immediately
           <div style={styles.welcomeScreen}>
             <img src={companyLogo2} alt="Growth Tip" style={styles.welcomeLogo} />
-            <h2 style={styles.welcomeTitle}>How can I help you today?</h2>
-            <p style={styles.welcomeSubtitle}>
-              I'm Growth Tip's virtual advisor, your guide to our services.
-            </p>
+            <h2 style={styles.welcomeTitle}>
+              {selectedLanguage === 'en' ? 'How can I help you today?' : '今天我能帮您什么？'}
+            </h2>
           </div>
         ) : (
           // Chat messages
@@ -299,46 +360,51 @@ Instructions:
         )}
       </div>
 
-      {/* Input Area */}
-      <div style={messages.length === 0 ? styles.inputAreaCentered : styles.inputAreaBottom}>
-        <div style={styles.inputContainer}>
-          <div style={styles.inputWrapper}>
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              onBlur={(e) => {
-                // Prevent losing focus unless clicking outside chat
-                setTimeout(() => {
-                  if (inputRef.current && !isLoading) {
-                    inputRef.current.focus();
-                  }
-                }, 0);
-              }}
-              placeholder="Type your message here...(English or 中文)"
-              style={styles.textarea}
-              rows="1"
-              disabled={isLoading}
-              autoFocus
-            />
-            <button
-              onClick={handleSubmit}
-              disabled={!input.trim() || isLoading}
-              style={{
-                ...styles.sendButton,
-                opacity: (!input.trim() || isLoading) ? 0.5 : 1,
-                cursor: (!input.trim() || isLoading) ? 'not-allowed' : 'pointer'
-              }}
-            >
-              <Send size={20} />
-            </button>
+      {/* Input Area - Only show if language selected */}
+      {selectedLanguage && (
+        <div style={messages.length === 0 ? styles.inputAreaCentered : styles.inputAreaBottom}>
+          <div style={styles.inputContainer}>
+            <div style={styles.inputWrapper}>
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                onBlur={(e) => {
+                  setTimeout(() => {
+                    if (inputRef.current && !isLoading) {
+                      inputRef.current.focus();
+                    }
+                  }, 0);
+                }}
+                placeholder={selectedLanguage === 'en' 
+                  ? "Type your message here..." 
+                  : "在此输入您的问题..."}
+                style={styles.textarea}
+                rows="1"
+                disabled={isLoading}
+                autoFocus
+              />
+              <button
+                onClick={handleSubmit}
+                disabled={!input.trim() || isLoading}
+                style={{
+                  ...styles.sendButton,
+                  opacity: (!input.trim() || isLoading) ? 0.5 : 1,
+                  cursor: (!input.trim() || isLoading) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                <Send size={20} />
+              </button>
+            </div>
+            <p style={styles.inputHint}>
+              {selectedLanguage === 'en'
+                ? 'Press Enter to send, Shift+Enter for new line'
+                : '按Enter发送，Shift+Enter换行'}
+            </p>
           </div>
-          <p style={styles.inputHint}>
-            Press Enter to send, Shift+Enter for new line
-          </p>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -367,17 +433,72 @@ const styles = {
     margin: '0 auto',
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: '12px',
   },
   headerLogo: {
     height: '40px',
     width: 'auto',
   },
-  headerTitle: {
-    fontSize: '20px',
-    fontWeight: '600',
+  langSwitcher: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '8px 14px',
+    backgroundColor: '#F5F5F5',
+    border: '1px solid #CCCCCC',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '500',
     color: '#333333',
-    margin: 0,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+
+  // Language selection screen
+  languageScreen: {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '32px',
+  },
+  languageTitle: {
+    fontSize: '32px',
+    fontWeight: '700',
+    color: '#333333',
+    marginBottom: '8px',
+    textAlign: 'center',
+  },
+  languageSubtitle: {
+    fontSize: '16px',
+    color: '#666666',
+    textAlign: 'center',
+    maxWidth: '500px',
+    margin: '20px 0 26px 0', 
+  },
+  languageButtons: {
+    display: 'flex',
+    gap: '24px',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  languageButton: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '20px 30px',
+    backgroundColor: '#FFFFFF',
+    border: '2px solid #E5E5E5',
+    borderRadius: '25px',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+  },
+  languageFlag: {
+    fontSize: '20px',
   },
 
   // Messages container
