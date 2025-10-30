@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, User, Bot, Copy, Check, Globe } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import companyLogo from './assets/gt-logo.png';
 import companyLogo2 from './assets/loader.png';
 
@@ -9,6 +10,7 @@ export default function AIChatbot() {
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState(null); // null, 'en', or 'zh'
+  //const [isSelecting, setIsSelecting] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -27,6 +29,30 @@ export default function AIChatbot() {
       }, 100);
     }
   }, [messages, isLoading, selectedLanguage]);
+
+    // --- Handle focus/blur to keep keyboard behavior natural
+  useEffect(() => {
+    const handleFocus = () => {
+      scrollToBottom();
+    };
+
+    const handleBlur = () => {
+      // optional – could dim input or something
+    };
+
+    const textarea = inputRef.current;
+    if (textarea) {
+      textarea.addEventListener('focus', handleFocus);
+      textarea.addEventListener('blur', handleBlur);
+    }
+
+    return () => {
+      if (textarea) {
+        textarea.removeEventListener('focus', handleFocus);
+        textarea.removeEventListener('blur', handleBlur);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // Auto-focus input on mount only if language already selected
@@ -207,13 +233,13 @@ Instructions:
 
     const userMessage = input.trim();
     setInput('');
-    
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
     try {
       const aiResponse = await getAIResponse(userMessage);
       setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
+      console.log('AI Response:', aiResponse);
     } catch (error) {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
@@ -225,11 +251,22 @@ Instructions:
       setIsLoading(false);
     }
   };
+  const handleSend = () => {
+    if (!input.trim()) return;
+    setIsLoading(true);
+    setInput("");
+    setIsLoading(false);
+    //Focus only once after send, not during selection
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  };
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
+      handleSend();
     }
   };
 
@@ -242,6 +279,14 @@ Instructions:
       console.error('Failed to copy text: ', err);
     }
   };
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setInput('');
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, []);
   
   return (
     <div style={styles.container}>
@@ -289,14 +334,6 @@ Instructions:
               </button>
             </div>
           </div>
-        ) : messages.length === 0 ? (
-          // This shouldn't show as we add welcome message immediately
-          <div style={styles.welcomeScreen}>
-            <img src={companyLogo2} alt="Growth Tip" style={styles.welcomeLogo} />
-            <h2 style={styles.welcomeTitle}>
-              {selectedLanguage === 'en' ? 'How can I help you today?' : '今天我能帮您什么？'}
-            </h2>
-          </div>
         ) : (
           // Chat messages
           <div style={styles.chatContent}>
@@ -313,11 +350,13 @@ Instructions:
                     <Bot className="w-5 h-5" style={styles.botAvatarImage} />                  
                   </div>
                 )}
-                <div style={{ position: 'relative', maxWidth: '600px' }}>
+                <div style={{ position: 'relative', maxWidth: '600px'}}>
                   <div style={message.role === 'user' ? styles.userMessage : styles.botMessage}>
-                    <p style={styles.messageText}>{message.content}</p>
+                    <div style={styles.messageText}>
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
                   </div>
-                  {message.role === 'assistant' && message.content.length > 50 && (
+                  {message.role === 'assistant' && message.content.length > 80 && (
                     <button
                       onClick={() => copyToClipboard(message.content, index)}
                       style={{
@@ -370,19 +409,13 @@ Instructions:
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                onBlur={(e) => {
-                  setTimeout(() => {
-                    if (inputRef.current && !isLoading) {
-                      inputRef.current.focus();
-                    }
-                  }, 0);
-                }}
+              
                 placeholder={selectedLanguage === 'en' 
                   ? "Type your message here..." 
                   : "在此输入您的问题..."}
                 style={styles.textarea}
                 rows="1"
-                disabled={isLoading}
+                readOnly={isLoading}
                 autoFocus
               />
               <button
@@ -591,6 +624,9 @@ const styles = {
     backgroundColor: '#D84848',
     color: '#FFFFFF',
     boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+    userSelect: 'text',
+    WebkitUserSelect: 'text', // For Safari
+    MozUserSelect: 'text', // For Firefox
   },
   botMessage: {
     maxWidth: '600px',
@@ -600,6 +636,9 @@ const styles = {
     color: '#333333',
     boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
     border: '1px solid #E5E5E5',
+    userSelect: 'text',
+    WebkitUserSelect: 'text', // For Safari
+    MozUserSelect: 'text', // For Firefox
   },
   messageText: {
     margin: 0,
@@ -607,6 +646,9 @@ const styles = {
     wordWrap: 'break-word',
     fontSize: '15px',
     lineHeight: '1.5',
+    userSelect: 'text',
+    WebkitUserSelect: 'text', // For Safari
+    MozUserSelect: 'text', // For Firefox
   },
 
   // Loading dots
@@ -688,7 +730,7 @@ const styles = {
   },
 
   // Copy button
-  copyButton: {
+ copyButton: {
     position: 'absolute',
     top: '8px',
     right: '8px',
