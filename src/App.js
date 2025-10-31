@@ -355,28 +355,44 @@ Instructions:
                     <div style={styles.messageText}>
                       <ReactMarkdown
                         components={{
-                        p: ({node, ...props}) => <p style={{margin: '0.5em 0', userSelect: 'text'}} {...props} />,
-                        strong: ({node, ...props}) => <strong style={{fontWeight: '600', userSelect: 'text'}} {...props} />,
-                        ul: ({node, ...props}) => <ul style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
-                        ol: ({node, ...props}) => <ol style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
-                        li: ({node, ...props}) => <li style={{userSelect: 'text'}} {...props} />,
-                        a: ({node, ...props}) => (
-                          <a 
-                            style={{
-                              color: '#D84848', // Your brand color
-                              textDecoration: 'underline',
-                              cursor: 'pointer',
-                              userSelect: 'text'
-                            }} 
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            {...props} 
-                          />
-                        ),
-                      }}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
+                          p: ({node, ...props}) => <p style={{margin: '0.5em 0', userSelect: 'text'}} {...props} />,
+                          strong: ({node, ...props}) => <strong style={{fontWeight: '600', userSelect: 'text'}} {...props} />,
+                          ul: ({node, ...props}) => <ul style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
+                          ol: ({node, ...props}) => <ol style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
+                          li: ({node, ...props}) => <li style={{userSelect: 'text'}} {...props} />,
+                          a: ({node, href, ...props}) => {
+                            // Check if it's a tel: link
+                            const isTelLink = href && href.startsWith('tel:');
+                            const isMailtoLink = href && href.startsWith('mailto:');
+                            
+                            return (
+                              // eslint-disable-next-line jsx-a11y/anchor-has-content
+                              <a 
+                                href={href}
+                                style={{
+                                  color: '#D84848',
+                                  textDecoration: 'underline',
+                                  cursor: 'pointer',
+                                  userSelect: 'text'
+                                }} 
+                                // Don't open tel: and mailto: links in new tab
+                                target={isTelLink || isMailtoLink ? '_self' : '_blank'}
+                                rel={isTelLink || isMailtoLink ? undefined : 'noopener noreferrer'}
+                                // Prevent default navigation for tel/mailto on click
+                                onClick={(e) => {
+                                  if (isTelLink || isMailtoLink) {
+                                    e.stopPropagation();
+                                    window.location.href = href;
+                                  }
+                                }}
+                                {...props} 
+                              />
+                            );
+                          },
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
                     </div>
                   </div>
                   {message.role === 'assistant' && message.content.length > 80 && (
