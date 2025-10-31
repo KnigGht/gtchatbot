@@ -360,33 +360,30 @@ Instructions:
                           ul: ({node, ...props}) => <ul style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
                           ol: ({node, ...props}) => <ol style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
                           li: ({node, ...props}) => <li style={{userSelect: 'text'}} {...props} />,
-                          a: ({ href, children }) => {
-                            const isTelLink = href?.startsWith('tel:');
-                            const isMailtoLink = href?.startsWith('mailto:');
+                           a: ({ href, children }) => {
+      const isMail = href?.startsWith('mailto:');
+      const isTel = href?.startsWith('tel:');
 
-                            return (
-                              <a
-                                href={href}
-                                onClick={(e) => {
-                                  if (isTelLink || isMailtoLink) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-
-                                    if (isTelLink) {
-                                      // ✅ Opens phone dialer
-                                      window.open(href);
-                                    } else if (isMailtoLink) {
-                                      // ✅ Opens default mail client
-                                      window.location.href = href;
-                                    }
-                                  }
-                                }}
-                                style={{ color: '#D84848', textDecoration: 'underline', cursor: 'pointer' }}
-                              >
-                                {children}
-                              </a>
-                            );
-                          },
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => {
+            if (isTel) {
+              // open dialer (mobile)
+              window.location.href = href;
+            } else if (isMail) {
+              // open mail client
+              window.location.href = href;
+            }
+          }}
+          style={{ color: '#D84848', textDecoration: 'underline', cursor: 'pointer' }}
+        >
+          {children}
+        </a>
+      );
+    },
 
                         }}
                       >
