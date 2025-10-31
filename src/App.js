@@ -91,7 +91,7 @@ export default function AIChatbot() {
               role: 'system',
               content: `${languageInstruction}
 
-You are a helpful assistant for MM2H (Malaysia My Second Home) visa program. Answer questions based ONLY on the following FAQ information. Be conversational, friendly, and concise.
+You are a helpful assistant for MM2H (Malaysia My Second Home) visa program from the company called "Growth Tip Consultancy". Answer questions based ONLY on the following FAQ information. Be conversational, friendly, and concise.
 
 === FREQUENTLY ASKED QUESTIONS - MM2H APPLICATION ===
 
@@ -188,7 +188,7 @@ A: The new rules allow the principal to designate a dependent as successor upon 
 Instructions:
 - Answer questions based on the FAQ above
 - Be friendly and conversational
-- If a question is not covered in the FAQ, politely say "I don't have that specific information in my current knowledge base, but I recommend to please get in touch with us +6 (03) 9059-1111 or email us at info@growthtip.my"
+- If a question is not covered in the FAQ, politely say "I don't have that specific information in my current knowledge base, but I recommend to please get in touch with us [+60390591111](tel:+60390591111) or email us at [info@growthtip.my](mailto:info@growthtip.my)"
 - Keep answers concise but complete
 - Use natural language, not robotic responses
 - REMEMBER: Respond ONLY in ${selectedLanguage === 'zh' ? 'Chinese (中文)' : 'English'}, regardless of the user's input language.`
@@ -353,7 +353,30 @@ Instructions:
                 <div style={{ position: 'relative', maxWidth: '600px'}}>
                   <div style={message.role === 'user' ? styles.userMessage : styles.botMessage}>
                     <div style={styles.messageText}>
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                      <ReactMarkdown
+                        components={{
+                        p: ({node, ...props}) => <p style={{margin: '0.5em 0', userSelect: 'text'}} {...props} />,
+                        strong: ({node, ...props}) => <strong style={{fontWeight: '600', userSelect: 'text'}} {...props} />,
+                        ul: ({node, ...props}) => <ul style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
+                        ol: ({node, ...props}) => <ol style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
+                        li: ({node, ...props}) => <li style={{userSelect: 'text'}} {...props} />,
+                        a: ({node, ...props}) => (
+                          <a 
+                            style={{
+                              color: '#D84848', // Your brand color
+                              textDecoration: 'underline',
+                              cursor: 'pointer',
+                              userSelect: 'text'
+                            }} 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            {...props} 
+                          />
+                        ),
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
                     </div>
                   </div>
                   {message.role === 'assistant' && message.content.length > 80 && (
