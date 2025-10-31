@@ -360,25 +360,33 @@ Instructions:
                           ul: ({node, ...props}) => <ul style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
                           ol: ({node, ...props}) => <ol style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
                           li: ({node, ...props}) => <li style={{userSelect: 'text'}} {...props} />,
-                          a: ({ href, children, ...props }) => {
-                            const isMail = href?.startsWith('mailto:');
-                            const isTel = href?.startsWith('tel:');
-
-                            const handleClick = (e) => {
-                              if (isTel || isMail) {
-                                e.preventDefault();
-                                window.location.href = href;
-                              }
-                            };
-
+                          a: ({node, href, children, ...props}) => {
+                            // Check if it's a tel: link
+                            const isTelLink = href && href.startsWith('tel:');
+                            const isMailtoLink = href && href.startsWith('mailto:');
+                            
                             return (
-                              <a
-                                {...props}
+                              // eslint-disable-next-line jsx-a11y/anchor-has-content
+                              <a 
                                 href={href}
-                                target={isTel || isMail ? undefined : "_blank"}
-                                rel={isTel || isMail ? undefined : "noopener noreferrer"}
-                                onClick={handleClick}
-                                style={{ color: '#D84848', textDecoration: 'underline', cursor: 'pointer' }}
+                                style={{
+                                  color: '#D84848',
+                                  textDecoration: 'underline',
+                                  cursor: 'pointer',
+                                  userSelect: 'text'
+                                }} 
+                                // Don't open tel: and mailto: links in new tab
+                                target={isTelLink || isMailtoLink ? '_self' : '_blank'}
+                                rel={isTelLink || isMailtoLink ? undefined : 'noopener noreferrer'}
+                                // Force direct navigation for tel/mailto
+                                onClick={(e) => {
+                                  if (isTelLink || isMailtoLink) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    window.location.href = href;
+                                  }
+                                }}
+                                {...props} 
                               >
                                 {children}
                               </a>
