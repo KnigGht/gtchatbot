@@ -188,7 +188,7 @@ A: The new rules allow the principal to designate a dependent as successor upon 
 Instructions:
 - Answer questions based on the FAQ above
 - Be friendly and conversational
-- If a question is not covered in the FAQ, politely say "I don't have that specific information in my current knowledge base, but I recommend to please get in touch with us [03-905 91111](tel:03-9059111) or email us at [info@growthtip.my](mailto:info@growthtip.my)"
+- If a question is not covered in the FAQ, politely say "I don't have that specific information in my current knowledge base, but I recommend to please get in touch with us [+60390591111](tel:+60390591111) or email us at [info@growthtip.my](mailto:info@growthtip.my)"
 - Keep answers concise but complete
 - Use natural language, not robotic responses
 - REMEMBER: Respond ONLY in ${selectedLanguage === 'zh' ? 'Chinese (中文)' : 'English'}, regardless of the user's input language.`
@@ -360,38 +360,21 @@ Instructions:
                           ul: ({node, ...props}) => <ul style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
                           ol: ({node, ...props}) => <ol style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
                           li: ({node, ...props}) => <li style={{userSelect: 'text'}} {...props} />,
-                          a: ({node, href, children, ...props}) => {
-                            // Check if it's a tel: link
-                            const isTelLink = href && href.startsWith('tel:');
-                            const isMailtoLink = href && href.startsWith('mailto:');
-                            
+                          a: ({ href, children }) => {
+                            const isTelLink = href?.startsWith('tel:');
+                            const isMailtoLink = href?.startsWith('mailto:');
+
                             return (
-                              // eslint-disable-next-line jsx-a11y/anchor-has-content
-                              <a 
+                              <a
                                 href={href}
-                                style={{
-                                  color: '#D84848',
-                                  textDecoration: 'underline',
-                                  cursor: 'pointer',
-                                  userSelect: 'text'
-                                }} 
-                                // Don't open tel: and mailto: links in new tab
-                                target={isTelLink || isMailtoLink ? '_self' : '_blank'}
-                                rel={isTelLink || isMailtoLink ? undefined : 'noopener noreferrer'}
-                                // Force direct navigation for tel/mailto
                                 onClick={(e) => {
-                                  if (isTelLink) {
+                                  if (isTelLink || isMailtoLink) {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    window.open(href, '_self'); // force opens dialer
-                                  } else if (isMailtoLink) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    window.location.assign(href); // opens email client
+                                    window.location.href = href; // force native handling
                                   }
                                 }}
-
-                                {...props} 
+                                style={{ color: '#007bff', textDecoration: 'underline' }}
                               >
                                 {children}
                               </a>
