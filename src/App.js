@@ -368,6 +368,9 @@ Instructions:
                 <div style={{ position: 'relative', maxWidth: '600px'}}>
                   <div style={message.role === 'user' ? styles.userMessage : styles.botMessage}>
                     <div style={styles.messageText}>
+                      <a href="tel:+60390591111">+60390591111</a>
+                    </div>
+                    <div style={styles.messageText}>
                       <ReactMarkdown
                         components={{
                           p: ({node, ...props}) => <p style={{margin: '0.5em 0', userSelect: 'text'}} {...props} />,
