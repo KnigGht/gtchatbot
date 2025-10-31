@@ -374,7 +374,7 @@ Instructions:
                                     window.location.href = href; // force native handling
                                   }
                                 }}
-                                style={{ color: '#007bff', textDecoration: 'underline' }}
+                                style={{ color: '#D84848', textDecoration: 'underline' }}
                               >
                                 {children}
                               </a>
