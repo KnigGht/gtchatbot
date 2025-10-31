@@ -371,15 +371,23 @@ Instructions:
                                   if (isTelLink || isMailtoLink) {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    window.location.href = href; // force native handling
+
+                                    if (isTelLink) {
+                                      // ✅ Opens phone dialer
+                                      window.open(href);
+                                    } else if (isMailtoLink) {
+                                      // ✅ Opens default mail client
+                                      window.location.href = href;
+                                    }
                                   }
                                 }}
-                                style={{ color: '#D84848', textDecoration: 'underline' }}
+                                style={{ color: '#D84848', textDecoration: 'underline', cursor: 'pointer' }}
                               >
                                 {children}
                               </a>
                             );
                           },
+
                         }}
                       >
                         {message.content}
