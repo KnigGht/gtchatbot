@@ -380,12 +380,17 @@ Instructions:
                                 rel={isTelLink || isMailtoLink ? undefined : 'noopener noreferrer'}
                                 // Force direct navigation for tel/mailto
                                 onClick={(e) => {
-                                  if (isTelLink || isMailtoLink) {
+                                  if (isTelLink) {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    window.location.href = href;
+                                    window.open(href, '_self'); // force opens dialer
+                                  } else if (isMailtoLink) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    window.location.assign(href); // opens email client
                                   }
                                 }}
+
                                 {...props} 
                               >
                                 {children}
