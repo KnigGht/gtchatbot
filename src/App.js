@@ -188,10 +188,9 @@ A: The new rules allow the principal to designate a dependent as successor upon 
 Instructions:
 - Answer questions based on the FAQ above
 - Be friendly and conversational
-- If a question is not covered in the FAQ, say something like: "I don't have that specific information, but you can contact us at +60390591111 or email info@growthtip.my for assistance."
+- If a question is not covered in the FAQ, politely say "I don't have that specific information in my current knowledge base, but I recommend to please get in touch with us [+603-90591111] or email us at [info@growthtip.my](mailto:info@growthtip.my)"
 - Keep answers concise but complete
 - Use natural language, not robotic responses
-- IMPORTANT: Write phone numbers and emails as plain text only (e.g., +60390591111 and info@growthtip.my). Do NOT use any markdown syntax, brackets, or parentheses around them.
 - REMEMBER: Respond ONLY in ${selectedLanguage === 'zh' ? 'Chinese (中文)' : 'English'}, regardless of the user's input language.`
             },
             ...messages.filter(m => m.role !== 'system').map(m => ({
@@ -215,21 +214,7 @@ Instructions:
       const data = await response.json();
       
       if (data.choices && data.choices[0] && data.choices[0].message) {
-        let content = data.choices[0].message.content;
-        
-        // Auto-convert phone numbers and emails to markdown links
-        // This handles the AI's plain text output and converts it to clickable links
-        
-        // Convert various phone formats to markdown link
-        content = content.replace(/\+60\s*3\s*9059\s*1111/g, '[+603 9059 1111](tel:+60390591111)');
-        content = content.replace(/\+60390591111/g, '[+60390591111](tel:+60390591111)');
-        content = content.replace(/60390591111/g, '[60390591111](tel:+60390591111)');
-        
-        // Convert email to markdown link
-        content = content.replace(/info@growthtip\.my/g, '[info@growthtip.my](mailto:info@growthtip.my)');
-        
-        console.log('Converted content:', content); // Debug log
-        return content;
+        return data.choices[0].message.content;
       } else {
         return selectedLanguage === 'zh' 
           ? "抱歉，我无法处理您的请求。请重试。"
@@ -368,56 +353,40 @@ Instructions:
                 <div style={{ position: 'relative', maxWidth: '600px'}}>
                   <div style={message.role === 'user' ? styles.userMessage : styles.botMessage}>
                     <div style={styles.messageText}>
-                      <a href="tel:+60390591111">+60390591111</a>
-                    </div>
-                    <div style={styles.messageText}>
                       <ReactMarkdown
+                        allowedSchemes={['http', 'https', 'mailto', 'tel']}
                         components={{
                           p: ({node, ...props}) => <p style={{margin: '0.5em 0', userSelect: 'text'}} {...props} />,
                           strong: ({node, ...props}) => <strong style={{fontWeight: '600', userSelect: 'text'}} {...props} />,
                           ul: ({node, ...props}) => <ul style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
                           ol: ({node, ...props}) => <ol style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
                           li: ({node, ...props}) => <li style={{userSelect: 'text'}} {...props} />,
-                          a: ({node, href, children, ...props}) => {
-                            const isMail = href?.startsWith('mailto:');
-                            const isTel= href?.startsWith('tel:');
+                          a: ({ node, href, children, ...props }) => {
+                            const isMailtoLink = href && href.startsWith('mailto:');
+                            //const isTelLink = href && href.startsWith('tel:');
 
-                            if (isTel || isMail) {
-                              return (
-                                // eslint-disable-next-line jsx-a11y/anchor-has-content
-                                <a 
-                                  href={href}
-                                  style={{ 
-                                    color: '#D84848', 
-                                    textDecoration: 'underline', 
-                                    cursor: 'pointer',
-                                    userSelect: 'text',
-                                  }}
-                                  // Don't prevent default, let browser handle it naturally
-                                  onClick={(e) => {
-                                    // Only stop propagation to parent elements
-                                    e.stopPropagation();
-                                  }}
-                                  {...props}
-                                >
-                                  {children}
-                                </a>
-                              );
-                            }
-                            // For regular links (external)
+                            const handleClick = (e) => {
+                              if (isMailtoLink) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                window.location.href = href;
+                              }
+                            };
+
                             return (
-                              // eslint-disable-next-line jsx-a11y/anchor-has-content
                               <a
                                 href={href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ 
-                                  color: '#D84848', 
-                                  textDecoration: 'underline', 
-                                  cursor: 'pointer',
-                                  userSelect: 'text',
-                                }}
                                 {...props}
+                                onClick={handleClick}
+                                style={{
+                                  color: '#D84848',
+                                  textDecoration: 'underline',
+                                  cursor: 'pointer',
+                                  userSelect: 'text'
+                                }}
+                                // Don't open tel/mailto links in new tab
+                                target={isMailtoLink ? undefined : '_blank'}
+                                rel={isMailtoLink ? undefined : 'noopener noreferrer'}
                               >
                                 {children}
                               </a>
@@ -799,7 +768,7 @@ const styles = {
     color: '#999999',
     textAlign: 'center',
     marginTop: '10px',
-    margin: '0px',
+    margin: '8px 0 10px 0',
   },
 
   // Copy button
