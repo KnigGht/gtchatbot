@@ -91,7 +91,7 @@ export default function AIChatbot() {
               role: 'system',
               content: `${languageInstruction}
 
-You are a helpful assistant for MM2H (Malaysia My Second Home) visa program from the company called "Growth Tip Consultancy". Answer questions based ONLY on the following FAQ information. Be conversational, friendly, and concise.
+You are a helpful assistant for MM2H (Malaysia My Second Home) visa program from the company called Growth Tip Consultancy. Answer questions based ONLY on the following FAQ information. Be conversational, friendly, and concise.
 
 === FREQUENTLY ASKED QUESTIONS - MM2H APPLICATION ===
 
@@ -366,7 +366,6 @@ Instructions:
                             const isMailtoLink = href && href.startsWith('mailto:');
                             
                             return (
-                              // eslint-disable-next-line jsx-a11y/anchor-has-content
                               <a 
                                 href={href}
                                 style={{
