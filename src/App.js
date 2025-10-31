@@ -360,31 +360,30 @@ Instructions:
                           ul: ({node, ...props}) => <ul style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
                           ol: ({node, ...props}) => <ol style={{marginLeft: '20px', margin: '0.5em 0', userSelect: 'text'}} {...props} />,
                           li: ({node, ...props}) => <li style={{userSelect: 'text'}} {...props} />,
-                           a: ({ href, children }) => {
-      const isMail = href?.startsWith('mailto:');
-      const isTel = href?.startsWith('tel:');
+                          a: ({ href, children, ...props }) => {
+                            const isMail = href?.startsWith('mailto:');
+                            const isTel = href?.startsWith('tel:');
 
-      return (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => {
-            if (isTel) {
-              // open dialer (mobile)
-              window.location.href = href;
-            } else if (isMail) {
-              // open mail client
-              window.location.href = href;
-            }
-          }}
-          style={{ color: '#D84848', textDecoration: 'underline', cursor: 'pointer' }}
-        >
-          {children}
-        </a>
-      );
-    },
+                            const handleClick = (e) => {
+                              if (isTel || isMail) {
+                                e.preventDefault();
+                                window.location.href = href;
+                              }
+                            };
 
+                            return (
+                              <a
+                                {...props}
+                                href={href}
+                                target={isTel || isMail ? undefined : "_blank"}
+                                rel={isTel || isMail ? undefined : "noopener noreferrer"}
+                                onClick={handleClick}
+                                style={{ color: '#D84848', textDecoration: 'underline', cursor: 'pointer' }}
+                              >
+                                {children}
+                              </a>
+                            );
+                          },
                         }}
                       >
                         {message.content}
