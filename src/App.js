@@ -10,7 +10,6 @@ export default function AIChatbot() {
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState(null); // null, 'en', or 'zh'
-  //const [isSelecting, setIsSelecting] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -18,19 +17,24 @@ export default function AIChatbot() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // FIX 1 & 3: Prevent auto-focus on mobile after messages update
   useEffect(() => {
     scrollToBottom();
-    // Always refocus after any change (only if language is selected)
-    if (selectedLanguage) {
-      setTimeout(() => {
-        if (inputRef.current && !isLoading) {
-          inputRef.current.focus();
-        }
-      }, 100);
+    // On mobile, don't force refocus after messages update to prevent keyboard popping up
+    if (selectedLanguage && !isLoading) {
+      // Only auto-focus on desktop, not on mobile
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) {
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        }, 100);
+      }
     }
   }, [messages, isLoading, selectedLanguage]);
 
-    // --- Handle focus/blur to keep keyboard behavior natural
+  // --- Handle focus/blur to keep keyboard behavior natural
   useEffect(() => {
     const handleFocus = () => {
       scrollToBottom();
@@ -54,9 +58,11 @@ export default function AIChatbot() {
     };
   }, []);
 
+  // FIX 1: Don't auto-focus on mobile when language is selected
   useEffect(() => {
-    // Auto-focus input on mount only if language already selected
-    if (selectedLanguage && inputRef.current) {
+    // Auto-focus input on mount only if language already selected and NOT on mobile
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (selectedLanguage && inputRef.current && !isMobile) {
       inputRef.current.focus();
     }
   }, [selectedLanguage]);
@@ -228,11 +234,18 @@ Instructions:
     }
   };
 
+  // FIX 3: Close keyboard when sending message
   const handleSubmit = async () => {
     if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
     setInput('');
+    
+    // Blur the input to close keyboard on mobile before sending
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
+    
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
@@ -251,22 +264,11 @@ Instructions:
       setIsLoading(false);
     }
   };
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setIsLoading(true);
-    setInput("");
-    setIsLoading(false);
-    //Focus only once after send, not during selection
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 100);
-  };
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
-      handleSend();
     }
   };
 
@@ -363,7 +365,6 @@ Instructions:
                           li: ({node, ...props}) => <li style={{userSelect: 'text'}} {...props} />,
                           a: ({ node, href, children, ...props }) => {
                             const isMailtoLink = href && href.startsWith('mailto:');
-                            //const isTelLink = href && href.startsWith('tel:');
 
                             const handleClick = (e) => {
                               if (isMailtoLink) {
@@ -384,7 +385,6 @@ Instructions:
                                   cursor: 'pointer',
                                   userSelect: 'text'
                                 }}
-                                // Don't open tel/mailto links in new tab
                                 target={isMailtoLink ? undefined : '_blank'}
                                 rel={isMailtoLink ? undefined : 'noopener noreferrer'}
                               >
@@ -458,7 +458,6 @@ Instructions:
                 style={styles.textarea}
                 rows="1"
                 readOnly={isLoading}
-                autoFocus
               />
               <button
                 onClick={handleSubmit}
@@ -487,13 +486,15 @@ Instructions:
 // ==================== STYLES ====================
 
 const styles = {
-  // Main container
+  // FIX 2: Use dynamic viewport height and prevent overflow
   container: {
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
+    height: '100dvh', // Dynamic viewport height for mobile
     backgroundColor: '#F5F5F5',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    overflow: 'hidden', // Prevent body scroll
   },
 
   // Header
@@ -667,8 +668,8 @@ const styles = {
     color: '#FFFFFF',
     boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
     userSelect: 'text',
-    WebkitUserSelect: 'text', // For Safari
-    MozUserSelect: 'text', // For Firefox
+    WebkitUserSelect: 'text',
+    MozUserSelect: 'text',
   },
   botMessage: {
     maxWidth: '600px',
@@ -679,8 +680,8 @@ const styles = {
     boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
     border: '1px solid #E5E5E5',
     userSelect: 'text',
-    WebkitUserSelect: 'text', // For Safari
-    MozUserSelect: 'text', // For Firefox
+    WebkitUserSelect: 'text',
+    MozUserSelect: 'text',
   },
   messageText: {
     margin: 0,
@@ -689,8 +690,8 @@ const styles = {
     fontSize: '15px',
     lineHeight: '1.5',
     userSelect: 'text',
-    WebkitUserSelect: 'text', // For Safari
-    MozUserSelect: 'text', // For Firefox
+    WebkitUserSelect: 'text',
+    MozUserSelect: 'text',
   },
 
   // Loading dots
@@ -768,11 +769,10 @@ const styles = {
     color: '#999999',
     textAlign: 'center',
     marginTop: '10px',
-    margin: '8px 0 10px 0',
   },
 
   // Copy button
- copyButton: {
+  copyButton: {
     position: 'absolute',
     top: '8px',
     right: '8px',
